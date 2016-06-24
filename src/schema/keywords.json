@@ -1,0 +1,11 @@
+    {
+        "alias": "keyword",
+        "id": "keyword",
+        "columns": [
+            { "id": "keyword", "dataType": "string" },
+            { "id": "time", "dataType": "int" },
+            { "id": "search_engine", "dataType": "string" },
+            { "id": "blended_rank", "dataType": "int" },
+            { "id": "page_url",  "dataType": "string" }
+        ]
+    }
