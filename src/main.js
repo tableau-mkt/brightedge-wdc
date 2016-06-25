@@ -162,7 +162,6 @@ module.exports = (function($, Q, tableau) {
                 "url": "https://api.brightedge.com/3.0/query/35547",
                 "method": "POST",
                 "headers": {
-                  //"authorization": "Basic dGFibGVhdXRlc3RAZ21haWwuY29tOkwwbmdMMXZlRGF0YSE=",
                   "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
                   "content-type": "application/json"
                 },
@@ -244,7 +243,6 @@ module.exports = (function($, Q, tableau) {
       url: proxy + "https://api.brightedge.com/3.0/query/35547",
       method: "POST",
       headers: {
-        //"authorization": "Basic dGFibGVhdXRlc3RAZ21haWwuY29tOkwwbmdMMXZlRGF0YSE=",
         "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
         "content-type": "application/json"
       },
