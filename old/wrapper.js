@@ -346,7 +346,7 @@ var wdcw = window.wdcw || {};
 
       // Set connection data and connection name.
       connector.setConnectionData(data);
-      tableau.connectionName = 'Travis CI';
+      tableau.connectionName = 'BrightEdge WDC';
 
       // If there was a password, set the password.
       if ($password.length) {

@@ -6,11 +6,14 @@ var module = module || {},
 
 module.exports = (function($, Q, tableau) {
   var retriesAttempted = 0,
-      maxRetries = 5,
+      maxRetries = 10,
       defaultItemsPerPage = 1000,
       config = {},
-      connector,
-      wrapper;
+      wrapper,
+      startDate,
+      endDate,
+      dates;
+
 
   config.name = 'BrightEdge WDC';
 
@@ -39,6 +42,7 @@ module.exports = (function($, Q, tableau) {
     switch (phase) {
       case tableau.phaseEnum.interactivePhase:
         console.log("inside interactive phase");
+
         // Perform actual interactive phase stuff.
         break;
 
@@ -47,6 +51,7 @@ module.exports = (function($, Q, tableau) {
         // Perform set up tasks that should happen when Tableau is attempting to
         // retrieve data from your connector (the user is not prompted for any
         // information in this phase.
+
         break;
 
       case tableau.phaseEnum.authPhase:
@@ -56,10 +61,35 @@ module.exports = (function($, Q, tableau) {
         break;
     }
 
+    try {
+      if (!dates && phase === tableau.phaseEnum.gatherDataPhase){
+        console.log("tableau object: " + JSON.stringify(tableau));
+        //console.log("JSON Parse: " + JSON.parse(tableau.connectionData));
+        startDate = JSON.parse(tableau.connectionData).startDate;
+        endDate = JSON.parse(tableau.connectionData).endDate;
+
+        return new Promise(function(resolve, reject){
+          getConvertedDates(startDate, endDate).then(function(dateObj){
+            dates = dateObj;
+            //console.log("dates object: " + JSON.stringify(dates));
+            resolve(Promise.resolve());  
+          }); 
+        }, function(err){
+          console.error(err);
+        });
+      } else {
+        return Promise.resolve();
+      }
+    } catch (e) {
+      console.error(e);
+      return Promise.resolve();
+    }
+
+
     // Always register when initialization tasks are complete by calling this.
     // This can be especially useful when initialization tasks are asynchronous
     // in nature.
-    return Promise.resolve();
+    //return Promise.resolve();
   };
 
 
@@ -105,7 +135,8 @@ module.exports = (function($, Q, tableau) {
    */
   config.schema = function defineSchema() {
     return Promise.all([
-      Q($.getJSON('/src/schema/keywords.json'))
+      Q($.getJSON('/src/schema/keywords.json')),
+      Q($.getJSON('/src/schema/keyword_volume_trending.json'))
     ]);
   };
 
@@ -148,41 +179,86 @@ module.exports = (function($, Q, tableau) {
        *   triggered.
        */
       getData: function getKeywordData(lastRecord) {
-        connector = this;
-        console.log("entered getKeywordData()");
 
-        //console.log(tableau);
+        var settings = {
+              "async": true,
+              "crossDomain": true,
+              "url": "https://api.brightedge.com/3.0/query/35547",
+              "method": "POST",
+              "headers": {
+                "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
+                "content-type": "application/json"
+              },
+              "data": "{\"dataset\":\"keyword\",\r\"dimension\":[\"keyword\", \"time\", \"search_engine\", \"page_url\"],"+
+              " \"measures\":[\"blended_rank\"], \"dimensionOptions\":{\"time\":\"weekly\"}, \"filter\":[[\"time\",\"ge\",\""+dates.startWeek+"\"],"+
+              " [\"time\",\"le\",\""+dates.endWeek+"\"]],\"count\":\"1000\", \"offset\":\""
+          }
 
-        // console.log("username: " + tableau.username);
-        // console.log("password: " + tableau.password);
+          return new Promise(function (resolve, reject) {
 
-          var settings = {
-                "async": true,
-                "crossDomain": true,
-                "url": "https://api.brightedge.com/3.0/query/35547",
-                "method": "POST",
-                "headers": {
-                  "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
-                  "content-type": "application/json"
-                },
-                "data": "query={ \"dataset\":\"keyword\",\r\"dimension\":[\"keyword\", \"time\", \"search_engine\", \"page_url\"]," +
-                "\"measures\":[\"blended_rank\"], \"dimensionOptions\":{\"time\":\"weekly\"}, \"filter\":[[\"time\",\"ge\",\"201601\"]],"+
-                " \"count\":\"1000\", \"offset\":\"0\"\r}"
+            // If a value is passed in for lastRecord, stash it. It means that Tableau
+            // is attempting an incremental refresh. We'll use the stashed value as a
+            // bound for API requests.
+            // if (lastRecord) {
+            //   lastKeyword = Number(lastRecord);
+            // }
 
-            }
+            // Do an initial request to get at the total number of records, then begin to
+            // go through all requests.
+            getData(buildApiFrom(settings, 0), function initialCall(data) {
+              var total = Number(data.total),
+                  processedData = [];
 
-            //query=
+              Promise.all(prefetchApiUrls(settings, total)).then(function (values) { 
 
-        console.log(settings);
+                values.forEach(function (value) {
+                  processedData = processedData.concat(value.values);
+                });
+
+                resolve(processedData);
+              }, function reject(reason) {
+                tableau.abortWithError('Unable to fetch data: ' + reason);
+                resolve([]);
+              });
+            });
+          });
+      },
+      /**
+       * Transform keyword data into the format expected for the keyword table.
+       *
+       * @param {Object} rawData
+       *   Raw data returned from the keyword.getData method.
+       *
+       * @returns {Promise.<Array<any>>}
+       */
+      postProcess: function postProcessKeywordData(rawData) {
+        return Promise.resolve(rawData);
+      }
+    },
+    keyword_volume_trending: {
+      getData: function getKeywordVolumeTrendingData(lastRecord){
+
+        var settings = {
+              "async": true,
+              "crossDomain": true,
+              "url": "https://api.brightedge.com/3.0/query/35547",
+              "method": "POST",
+              "headers": {
+                "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
+                "content-type": "application/json"
+              },
+              "data": "{\"dataset\":\"keyword_volume_trending\",\r\"dimension\":[\"keyword\", \"time\", \"search_engine\"],"+
+              " \"measures\":[\"avg_volume\", \"search_volume\"], \"dimensionOptions\":{\"time\":\"monthly\"}, \"filter\":[[\"time\",\"ge\",\""+dates.startMonth+"\"],"+
+              " [\"time\",\"le\",\""+dates.endMonth+"\"], [\"search_engine\", [[\"-1\", \"34\"], [\"-1\", \"44\"], [\"-1\", \"102\"], [\"-1\", \"268\"],"+
+              " [\"-1\", \"43\"]]]], \"count\":\"1000\", \"offset\":\""
+          }
 
         return new Promise(function (resolve, reject) {
-          console.log("entered getData Promise");
-
-          console.log("inside getData promise -- before initial call");    
 
           // If a value is passed in for lastRecord, stash it. It means that Tableau
           // is attempting an incremental refresh. We'll use the stashed value as a
           // bound for API requests.
+          //@TODO: Implement Incremental Refresh
           // if (lastRecord) {
           //   lastKeyword = Number(lastRecord);
           // }
@@ -194,11 +270,11 @@ module.exports = (function($, Q, tableau) {
                 processedData = [];
 
             Promise.all(prefetchApiUrls(settings, total)).then(function (values) { 
-              //console.log("values: " + JSON.stringify(values));
+
               values.forEach(function (value) {
                 processedData = processedData.concat(value.values);
               });
-              console.log("length of values: " + values.length);
+
               resolve(processedData);
             }, function reject(reason) {
               tableau.abortWithError('Unable to fetch data: ' + reason);
@@ -206,19 +282,16 @@ module.exports = (function($, Q, tableau) {
             });
           });
         })
-      },
+      },  
       /**
-       * Transform keyword data into the format expected for the keywords table.
+       * Transform keyword data into the format expected for the keyword_volume_trending table.
        *
        * @param Object data
-       *   Raw data returned from the keywords.getData method.
+       *   Raw data returned from the keyword_volume_trending.getData method.
        *
        * @returns {Promise.<Array<any>>}
        */
-      postProcess: function postProcessKeywordData(rawData) {
-        console.log("entering postProcess");
-        console.log("rawData: " + JSON.stringify(rawData));
-        console.log("exiting postProcess");
+      postProcess: function postProcessKeywordVolumeTrendingData(rawData){
         return Promise.resolve(rawData);
       }
     }
@@ -236,24 +309,18 @@ module.exports = (function($, Q, tableau) {
    *   # to inform paging.
    */
    buildApiFrom = function buildApiFrom(settings, offsetCount) {
-    console.log("entering buildApiFrom");
-    proxy = '/proxy?endpoint=';
+    // console.log("settings: " + JSON.stringify(settings));
+    // console.log("settings.data: " + JSON.stringify(settings.data));
+    var proxy = '/proxy?endpoint=';
 
     var updatedSettings = {
-      url: proxy + "https://api.brightedge.com/3.0/query/35547",
+      url: proxy + settings.url,
       method: "POST",
-      headers: {
-        "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
-        "content-type": "application/json"
-      },
-      data: "{ \"dataset\":\"keyword\",\r\"dimension\":[\"keyword\", \"time\", \"search_engine\", \"page_url\"]," +
-       "\"measures\":[\"blended_rank\"], \"dimensionOptions\":{\"time\":\"weekly\"}, \"filter\":[[\"time\",\"ge\",\"201601\"]]," +
-        "\"count\":\"1000\", \"offset\":\"" + offsetCount.toString() + "\"\r}"
+      headers: settings.headers,
+      data: settings.data + offsetCount.toString() + "\"\r}"
     }
 
-    //query=
-    //console.log(updatedSettings);
-    console.log("leaving buildApiFrom");
+    //console.log("updatedSettings: " + JSON.stringify(updatedSettings));
     return updatedSettings;
   };
 
@@ -276,8 +343,6 @@ module.exports = (function($, Q, tableau) {
         offsetCount = 0,
         urlPromise;
 
-     console.log("entering prefetchApiURLS");   
-
     // calculate max promises to return.
     maxPromises = Math.ceil(total / itemsPerPage);
 
@@ -295,8 +360,6 @@ module.exports = (function($, Q, tableau) {
       urlPromises.push(urlPromise);
       offsetCount += itemsPerPage;
     }
-    console.log("length of urlPromises array: " + urlPromises.length);
-    // console.log("exiting prefetchApiURLS");
     return urlPromises;
   }
 
@@ -313,7 +376,6 @@ module.exports = (function($, Q, tableau) {
    *     reason: A string describing why data collection failed.
    */
   function getData(settings, successCallback, failCallback) {
-    console.log("getData settings: " + settings);
 
      $.ajax({
       url: settings.url,
@@ -321,13 +383,11 @@ module.exports = (function($, Q, tableau) {
       data: settings.data,
       method: "POST",
       success: function dataRetrieved(response) {
-        // console.log("getData's success callback has fired!");
         // console.log("dataRetrieved: " + response);
         successCallback(response);
       },
       error: function retrievalFailed(xhr, status, error) {
         if (retriesAttempted <= maxRetries) {
-          console.log("getData's failure callback has fired!");
           retriesAttempted++;
           getData(settings, successCallback, failCallback);
         }
@@ -339,7 +399,128 @@ module.exports = (function($, Q, tableau) {
   }
 
 
-    // Polyfill for btoa() in older browsers.
+
+  /**
+   * Helper function to build an API endpoint.
+   *
+   * @param {Integer} rawDate
+   *   YYYYMMDD date to be converted to YYYYWW date
+   *
+   * @param {String} dateType (e.g: "weekly" or "monthly")
+   *   to inform which type of date to return
+   */
+   buildDateApiFrom = function buildDateApiFrom(rawDate, dateType) {
+    var proxy = '/proxy?endpoint=',
+      path = 'https://api.brightedge.com/3.0/objects/time/35547/';
+
+    var dateConversionSettings = {
+      url: proxy + path + dateType + "/" + rawDate.toString(),
+      async: true,
+      crossDomain: true,
+      method: "GET",
+      headers: {
+        "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
+        "content-type": "application/json"
+      },
+    }
+    return dateConversionSettings;
+  };
+
+
+  //ajax call to get YEARWEEK date from BrightEdge API
+  function getYearWeekDate(settings, successCallback, failCallback){
+    $.ajax({
+        url: settings.url,
+        async: true,
+        crossDomain: true,
+        method: "GET",
+        headers: settings.headers,
+        success: function dataRetrieved(response) {
+          // console.log("dataRetrieved: " + response);
+          successCallback(response);
+        },
+        error: function retrievalFailed(xhr, status, error) {
+            getYearWeekDate(settings, successCallback, failCallback);
+        }
+    }); 
+  } 
+
+  function getConvertedDates(startDate, endDate){
+    var datesObj = {},
+      startweek,
+      startMonth,
+      endWeek,
+      endMonth;
+
+    //get start week
+    startWeek = new Promise(function(resolve, reject){
+      getYearWeekDate(buildDateApiFrom(startDate, "weekly"), function gotDate(data){
+        var startWeekObj = {
+          "startWeek": data.time_value
+        }
+        resolve(startWeekObj);
+      }, function couldNotGetStartWeek(reason){
+        reject(reason);
+      });
+    });
+    
+    //get start month
+    startMonth = new Promise(function(resolve, reject){
+      getYearWeekDate(buildDateApiFrom(startDate, "monthly"), function gotDate(data){
+        var startMonthObj = {
+          "startMonth": data.time_value
+        }
+        resolve(startMonthObj);
+      }, function couldNotGetStartMonth(reason){
+        reject(reason);
+      });
+    });        
+
+    //get end week
+    endWeek = new Promise(function(resolve, reject){
+      getYearWeekDate(buildDateApiFrom(endDate, "weekly"), function gotDate(data){
+        var endWeekObj = {
+          "endWeek": data.time_value
+        }
+        resolve(endWeekObj);
+      }, function couldNotGetEndWeek(reason){
+        reject(reason);
+      });
+    });
+
+    //get end month
+    endMonth = new Promise(function(resolve, reject){    
+      getYearWeekDate(buildDateApiFrom(endDate, "monthly"), function gotDate(data){
+        var endMonthObj = {
+          "endMonth": data.time_value
+        }
+        resolve(endMonthObj);
+      }, function couldNotGetEndMonth(reason){
+        reject(reason);
+      });
+    });
+
+    //returns a "datesObj" with all the necessary dates included as key:value pairs
+    return new Promise(function(resolve, reject){
+
+      Promise.all([startWeek, startMonth, endWeek, endMonth]).then(function(values){
+
+        values.forEach(function (value) {
+          $.extend(datesObj, value);
+        });
+
+        //console.log("datesObj in Promise.all: " + JSON.stringify(datesObj));
+        resolve(datesObj);
+      },
+        function reject(reason) {
+          tableau.abortWithError('Unable to fetch date conversion data: ' + reason);
+          resolve({});
+      });
+    })
+  }
+
+
+  // Polyfill for btoa() in older browsers.
   // @see https://raw.githubusercontent.com/davidchambers/Base64.js/master/base64.js
   /* jshint ignore:start */
   if (typeof btoa === 'undefined') {
@@ -374,8 +555,6 @@ module.exports = (function($, Q, tableau) {
     };
   }
   /* jshint ignore:end */
-
-
 
   // Instantiate our web data connector.
   wrapper = wdcw(config);

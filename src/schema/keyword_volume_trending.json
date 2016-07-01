@@ -1,12 +1,12 @@
     {
-        "alias": "keyword",
-        "id": "keyword",
+        "alias": "keyword_volume_trending",
+        "id": "keyword_volume_trending",
         "columns": [
             { "id": "keyword", "dataType": "string" },
             { "id": "time", "dataType": "int" },
             { "id": "search_engine", "dataType": "string" },
-            { "id": "blended_rank", "dataType": "int" },
-            { "id": "page_url",  "dataType": "string" }
+            { "id": "avg_volume", "dataType": "int" },
+            { "id": "search_volume",  "dataType": "int" }
         ]
     }
     
