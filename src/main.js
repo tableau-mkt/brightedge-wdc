@@ -41,13 +41,13 @@ module.exports = (function($, Q, tableau) {
     // points in the data connector flow. You can do so here.
     switch (phase) {
       case tableau.phaseEnum.interactivePhase:
-        console.log("inside interactive phase");
+        //console.log("inside interactive phase");
 
         // Perform actual interactive phase stuff.
         break;
 
       case tableau.phaseEnum.gatherDataPhase:
-        console.log("inside gatherDataPhase");
+        //console.log("inside gatherDataPhase");
         // Perform set up tasks that should happen when Tableau is attempting to
         // retrieve data from your connector (the user is not prompted for any
         // information in this phase.
@@ -55,7 +55,7 @@ module.exports = (function($, Q, tableau) {
         break;
 
       case tableau.phaseEnum.authPhase:
-        console.log("inside authPhase");
+        //console.log("inside authPhase");
         // Perform set up tasks that should happen when Tableau is attempting to
         // refresh OAuth authentication tokens.
         break;
@@ -63,7 +63,7 @@ module.exports = (function($, Q, tableau) {
 
     try {
       if (!dates && phase === tableau.phaseEnum.gatherDataPhase){
-        console.log("tableau object: " + JSON.stringify(tableau));
+        //console.log("tableau object: " + JSON.stringify(tableau));
         //console.log("JSON Parse: " + JSON.parse(tableau.connectionData));
         startDate = JSON.parse(tableau.connectionData).startDate;
         endDate = JSON.parse(tableau.connectionData).endDate;
@@ -148,23 +148,6 @@ module.exports = (function($, Q, tableau) {
        * data you've retrieved. You may optionally pass a token as a second argument
        * to support paged/chunked data retrieval.
        *
-       * @param {function(Array<{object}>, {string})} registerData
-       *   A callback function that takes an array of objects as its sole argument.
-       *   Each object should be a simple key/value map of column name to column
-       *   value. For example, you might call the callback in the following way:
-       *   registerData([
-       *     {'String Column': 'String Column Value', 'Integer Column': 123}
-       *   ]});
-       *
-       *   It's possible that the API you're interacting with supports some mechanism
-       *   for paging or filtering. To simplify the process of making several paged
-       *   calls to your API, you may optionally pass a second argument in your call
-       *   to the registerData callback. This argument should be a string token that
-       *   represents the last record you retrieved.
-       *
-       *   If provided, your implementation of the tableData method will be called
-       *   again, this time with the token you provide here. Once all data has been
-       *   retrieved, pass null, false, 0, or an empty string.
        *
        * @param {string} lastRecord
        *   Optional. If you indicate in the call to registerData that more data is
@@ -196,6 +179,7 @@ module.exports = (function($, Q, tableau) {
 
           return new Promise(function (resolve, reject) {
 
+            //@TODO: Implement Incremental Refresh Functionality
             // If a value is passed in for lastRecord, stash it. It means that Tableau
             // is attempting an incremental refresh. We'll use the stashed value as a
             // bound for API requests.
