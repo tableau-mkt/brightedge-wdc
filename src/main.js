@@ -41,13 +41,10 @@ module.exports = (function($, Q, tableau) {
     // points in the data connector flow. You can do so here.
     switch (phase) {
       case tableau.phaseEnum.interactivePhase:
-        //console.log("inside interactive phase");
-
         // Perform actual interactive phase stuff.
         break;
 
       case tableau.phaseEnum.gatherDataPhase:
-        //console.log("inside gatherDataPhase");
         // Perform set up tasks that should happen when Tableau is attempting to
         // retrieve data from your connector (the user is not prompted for any
         // information in this phase.
@@ -55,7 +52,6 @@ module.exports = (function($, Q, tableau) {
         break;
 
       case tableau.phaseEnum.authPhase:
-        //console.log("inside authPhase");
         // Perform set up tasks that should happen when Tableau is attempting to
         // refresh OAuth authentication tokens.
         break;
@@ -63,15 +59,12 @@ module.exports = (function($, Q, tableau) {
 
     try {
       if (!dates && phase === tableau.phaseEnum.gatherDataPhase){
-        //console.log("tableau object: " + JSON.stringify(tableau));
-        //console.log("JSON Parse: " + JSON.parse(tableau.connectionData));
         startDate = JSON.parse(tableau.connectionData).startDate;
         endDate = JSON.parse(tableau.connectionData).endDate;
 
         return new Promise(function(resolve, reject){
           getConvertedDates(startDate, endDate).then(function(dateObj){
             dates = dateObj;
-            //console.log("dates object: " + JSON.stringify(dates));
             resolve(Promise.resolve());  
           }); 
         }, function(err){
@@ -303,8 +296,6 @@ module.exports = (function($, Q, tableau) {
       headers: settings.headers,
       data: settings.data + offsetCount.toString() + "\"\r}"
     }
-
-    //console.log("updatedSettings: " + JSON.stringify(updatedSettings));
     return updatedSettings;
   };
 
@@ -493,7 +484,6 @@ module.exports = (function($, Q, tableau) {
           $.extend(datesObj, value);
         });
 
-        //console.log("datesObj in Promise.all: " + JSON.stringify(datesObj));
         resolve(datesObj);
       },
         function reject(reason) {
@@ -542,7 +532,6 @@ module.exports = (function($, Q, tableau) {
 
   // Instantiate our web data connector.
   wrapper = wdcw(config);
-  //console.log(config);
+
   return config;
-  //return wrapper;
 })(jQuery, Q, tableau);

@@ -34,12 +34,8 @@ app.post('/proxy', function (req, res) {
 
   var operation = retry.operation(opts);
 
-  //console.log("req: " + JSON.stringify(req));
-  console.log("Query Offset: " + JSON.stringify(req.body.offset));
-  // console.log("req.query: " + JSON.stringify(req.query));
-  // console.log("req.query.endpoint: " + req.query.endpoint);
-  //console.log("body: "+JSON.stringify(req.body));
-  //console.log("auth:" + req.header('authorization'));
+  //console.log("Query Offset: " + JSON.stringify(req.body.offset));
+
 
   var realPath = req.query.endpoint,
       options = {
@@ -63,8 +59,6 @@ app.post('/proxy', function (req, res) {
       request(options, function (error, response, body) {
         var header;
 
-        //console.log("status code returned: " + response.statusCode);
-
         if (!error && response.statusCode === 200) {
           // Proxy all response headers.
           for (header in response.headers) {
@@ -84,9 +78,6 @@ app.post('/proxy', function (req, res) {
       });
     });
 });
-
-
-
 
 // Create a proxy endpoint for a GET request
 app.get('/proxy', function (req, res) {
@@ -116,8 +107,6 @@ app.get('/proxy', function (req, res) {
           'User-Agent': 'brightedge-wdc/0.0.0'
         }
       };
-
-
 
   //make the retry attempt
   operation.attempt(function(currentAttempt){
