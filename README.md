@@ -1,4 +1,4 @@
-# github-data-connector
+# BrightEdge-Web-Data-Connector
 A Tableau Web Data Connector for BrightEdge
 
 Running version of the BrightEdge Tableau Web Data Connector is also available here:
