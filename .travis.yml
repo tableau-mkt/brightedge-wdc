@@ -1,23 +1,16 @@
 language: node_js
 node_js:
-  - '0.12'
+- '0.12'
 
 before_install:
-  # Install grunt CLI globally so Heroku runs grunt build after install.
-  - npm install -g grunt-cli
+- npm install -g grunt-cli
+
+script:
+- npm test
 
 deploy:
   provider: heroku
-
-  # Only deploy commits to the master branch. Be sure to update this to match
-  # the actual name of your app on Heroku.
   app:
-    master: brightedge-wdc-connector
-
-  # In order to deploy to Heroku, we need to provide a Heroku API key. Because
-  # the key is sensitive, we need to encrypt it before committing it to git. In
-  # order to do so, run the following in your command line:
-  #   travis encrypt $(heroku auth:token) --add deploy.api_key
-  # For more info, see: http://docs.travis-ci.com/user/deployment/heroku/
+    master: brightedge-web-data-connector
   api_key:
-    secure: 'Travis Encrypted Heroku API Key Here'
+    secure: bIbJfq76q5O+/Axat6/swbsiTRYEEPA7lJjQwHbqQ3ikScASg6jlYEdpGgoWXsIIJ6qZPdmFuBdB9WoDUXEeezkkKE8hfa1k/4RN+vC1nOYLnKXFVYPuwghnuL9EtAsfDeHZaTETXT+t9vxG8QF+hezXGJJZNbgz1rs+lLWmvt4Rp2mULKZ4UTSFDMhzKQBMLjBfWYq/NsbvFQ28VNo9h44ZEoQC+/ZaVXNhdoMbuP7Mw2Hhvn20Rxb4yypOJXCkwjgz0XkCK3HGkPrsafVzcNXdxdF7GvGLcreqA0xwN/DyHMhFQvse0b5mirGcuKwB2CdpakCiWhucG1JT+7z7s2rrwxClFGn7e8DbC/1Ot0NWbP3Ms59FMDLzFilMrz72dLej8Asu94N1Ec1blHlHDDo+nEbpYuLHYJ2Nw8LAFR+5Qul66LRkRA63ZKNqjcHeST6V2npepdqdbfSjWk7HarPjAlvAND1lZyPFTXkDwi/nfJMjNI6omfZAyebo0BNz1t/iJY9Nh4puV+8CSj8u8gHl7453eM8mOpQboC40yEa5H0/r7LPEC2TUp2J2hjALDtEUMDFhG3MIAxdIeCSO5c1NEbahEuG1BuZTWNCjmGO8N9Xn82vEG4NpuzrYZWvIzeidwCbHVToQxayowCvrqz94KUeQbc5nyhBdIsILNGM=

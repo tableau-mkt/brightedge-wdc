@@ -2,7 +2,7 @@
 A Tableau Web Data Connector for BrightEdge
 
 Running version of the BrightEdge Tableau Web Data Connector is also available here:
-[heroku url here](heroku url here)
+[https://brightedge-web-data-connector.herokuapp.com/](https://brightedge-web-data-connector.herokuapp.com/)
 
 ## Initial set-up
 - NPM dependencies
