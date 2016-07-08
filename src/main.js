@@ -10,6 +10,7 @@ module.exports = (function($, Q, tableau) {
       defaultItemsPerPage = 1000,
       config = {},
       wrapper,
+      acctID,
       startDate,
       endDate,
       dates;
@@ -49,6 +50,31 @@ module.exports = (function($, Q, tableau) {
         // retrieve data from your connector (the user is not prompted for any
         // information in this phase.
 
+        //At the very start of the gatherDataPhase, convert the user-inputted date fields, and assign
+        //the acctID variable to the user-submitted account id # to be used in the API queries
+        try {
+          if (!dates && !acctID && phase === tableau.phaseEnum.gatherDataPhase){
+            startDate = JSON.parse(tableau.connectionData).startDate;
+            endDate = JSON.parse(tableau.connectionData).endDate;
+            acctID = JSON.parse(tableau.connectionData).id;
+
+            return new Promise(function(resolve, reject){
+              //convert dates from YYYYMMDD to YYYYWW
+              getConvertedDates(startDate, endDate).then(function(dateObj){
+                dates = dateObj;
+                resolve(Promise.resolve());  
+              }); 
+            }, function(err){
+              console.error(err);
+            });
+          } else {
+            return Promise.resolve();
+          }
+        } catch (e) {
+          console.error(e);
+          return Promise.resolve();
+        }
+
         break;
 
       case tableau.phaseEnum.authPhase:
@@ -57,32 +83,10 @@ module.exports = (function($, Q, tableau) {
         break;
     }
 
-    try {
-      if (!dates && phase === tableau.phaseEnum.gatherDataPhase){
-        startDate = JSON.parse(tableau.connectionData).startDate;
-        endDate = JSON.parse(tableau.connectionData).endDate;
-
-        return new Promise(function(resolve, reject){
-          getConvertedDates(startDate, endDate).then(function(dateObj){
-            dates = dateObj;
-            resolve(Promise.resolve());  
-          }); 
-        }, function(err){
-          console.error(err);
-        });
-      } else {
-        return Promise.resolve();
-      }
-    } catch (e) {
-      console.error(e);
-      return Promise.resolve();
-    }
-
-
     // Always register when initialization tasks are complete by calling this.
     // This can be especially useful when initialization tasks are asynchronous
     // in nature.
-    //return Promise.resolve();
+    return Promise.resolve();
   };
 
 
@@ -159,7 +163,7 @@ module.exports = (function($, Q, tableau) {
         var settings = {
               "async": true,
               "crossDomain": true,
-              "url": "https://api.brightedge.com/3.0/query/35547",
+              "url": "https://api.brightedge.com/3.0/query/" + acctID,
               "method": "POST",
               "headers": {
                 "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
@@ -218,7 +222,7 @@ module.exports = (function($, Q, tableau) {
         var settings = {
               "async": true,
               "crossDomain": true,
-              "url": "https://api.brightedge.com/3.0/query/35547",
+              "url": "https://api.brightedge.com/3.0/query/" + acctID,
               "method": "POST",
               "headers": {
                 "authorization": 'Basic ' + btoa(tableau.username + ':' + tableau.password),
@@ -286,8 +290,7 @@ module.exports = (function($, Q, tableau) {
    *   # to inform paging.
    */
    buildApiFrom = function buildApiFrom(settings, offsetCount) {
-    // console.log("settings: " + JSON.stringify(settings));
-    // console.log("settings.data: " + JSON.stringify(settings.data));
+    //express.js proxy endpoint
     var proxy = '/proxy?endpoint=';
 
     var updatedSettings = {
@@ -358,7 +361,6 @@ module.exports = (function($, Q, tableau) {
       data: settings.data,
       method: "POST",
       success: function dataRetrieved(response) {
-        // console.log("dataRetrieved: " + response);
         successCallback(response);
       },
       error: function retrievalFailed(xhr, status, error) {
@@ -386,7 +388,7 @@ module.exports = (function($, Q, tableau) {
    */
    buildDateApiFrom = function buildDateApiFrom(rawDate, dateType) {
     var proxy = '/proxy?endpoint=',
-      path = 'https://api.brightedge.com/3.0/objects/time/35547/';
+      path = 'https://api.brightedge.com/3.0/objects/time/' + acctID +'/';
 
     var dateConversionSettings = {
       url: proxy + path + dateType + "/" + rawDate.toString(),
@@ -411,7 +413,6 @@ module.exports = (function($, Q, tableau) {
         method: "GET",
         headers: settings.headers,
         success: function dataRetrieved(response) {
-          // console.log("dataRetrieved: " + response);
           successCallback(response);
         },
         error: function retrievalFailed(xhr, status, error) {
