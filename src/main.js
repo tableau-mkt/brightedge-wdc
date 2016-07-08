@@ -221,6 +221,25 @@ module.exports = (function($, Q, tableau) {
       }
     },
     keyword_volume_trending: {
+       /**
+       * Primary method called when Tableau is asking for your web data connector's
+       * data. Takes a callable argument that you should call with all of the
+       * data you've retrieved. You may optionally pass a token as a second argument
+       * to support paged/chunked data retrieval.
+       *
+       *
+       * @param {string} lastRecord
+       *   Optional. If you indicate in the call to registerData that more data is
+       *   available (by passing a token representing the last record retrieved),
+       *   then the lastRecord argument will be populated with the token that you
+       *   provided. Use this to update/modify the API call you make to handle
+       *   pagination or filtering.
+       *
+       *   If you indicated a column in wdcw.columnHeaders suitable for use during
+       *   an incremental extract refresh, the last value of the given column will
+       *   be passed as the value of lastRecord when an incremental refresh is
+       *   triggered.
+       */
       getData: function getKeywordVolumeTrendingData(lastRecord){
 
         var settings = {
@@ -284,7 +303,10 @@ module.exports = (function($, Q, tableau) {
 
   // You can write private methods for use above like this:
 
-  //Validation check to ensure WDC is not fired with invalid data
+  /**
+   * Actual interactive phase setup code. 
+   * Validation check to ensure WDC is not fired with invalid data
+   */
   function setUpInteractivePhase() {
     var $modal = $('div.modal'),
         $form = $('form'),
@@ -415,7 +437,7 @@ module.exports = (function($, Q, tableau) {
 
 
   /**
-   * Helper function to build an API endpoint.
+   * Helper function to build an API endpoint for our date conversions
    *
    * @param {Integer} rawDate
    *   YYYYMMDD date to be converted to YYYYWW date
@@ -441,7 +463,19 @@ module.exports = (function($, Q, tableau) {
   };
 
 
-  //ajax call to get YEARWEEK date from BrightEdge API
+  /**
+   * AJAX GET Request to our API to grab YearWeek formatted dates
+   *  from BrightEdge's API
+   *
+   * @param {Object} settings
+   *   The url used for our API payload.
+   * @param {function(data)} successCallback
+   *   A callback function which takes one argument:
+   *     data: result set from the API call.
+   * @param {function(reason)} failCallback
+   *   A callback which takes one argument:
+   *     reason: A string describing why data collection failed.
+   */
   function getYearWeekDate(settings, successCallback, failCallback){
     $.ajax({
         url: settings.url,
@@ -464,6 +498,19 @@ module.exports = (function($, Q, tableau) {
     }); 
   } 
 
+
+  /**
+   * Function to return convertedDates
+   *
+   * @param {Integer} startDate
+   *   YYYYMMDD date to be converted to YYYYWW date
+   *
+   * @param {Integer} endDate
+   *   YYYYMMDD date to be converted to YYYYWW date
+   *
+   * @returns {[]}
+   *   A Date object, containing the startWeek, StartMonth, endWeek, and endMonth values   
+   */
   function getConvertedDates(startDate, endDate){
     var datesObj = {},
       startweek,
