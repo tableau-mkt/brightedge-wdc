@@ -6,7 +6,9 @@ var module = module || {},
 
 module.exports = (function($, Q, tableau) {
   var retriesAttempted = 0,
-      maxRetries = 10,
+      maxRetries = 5,
+      dateRetriesAttempted = 0,
+      maxDateRetries = 2,
       defaultItemsPerPage = 1000,
       config = {},
       wrapper,
@@ -43,6 +45,8 @@ module.exports = (function($, Q, tableau) {
     switch (phase) {
       case tableau.phaseEnum.interactivePhase:
         // Perform actual interactive phase stuff.
+
+
         break;
 
       case tableau.phaseEnum.gatherDataPhase:
@@ -302,6 +306,7 @@ module.exports = (function($, Q, tableau) {
     return updatedSettings;
   };
 
+
   /**
    * Helper function to return an array of promises
    *
@@ -341,6 +346,7 @@ module.exports = (function($, Q, tableau) {
     return urlPromises;
   }
 
+
   /**
    * AJAX call to our API.
    *
@@ -374,7 +380,6 @@ module.exports = (function($, Q, tableau) {
       }
     });
   }
-
 
 
   /**
@@ -416,7 +421,13 @@ module.exports = (function($, Q, tableau) {
           successCallback(response);
         },
         error: function retrievalFailed(xhr, status, error) {
+          if (dateRetriesAttempted <= maxDateRetries) {
+            dateRetriesAttempted++;
             getYearWeekDate(settings, successCallback, failCallback);
+          }
+          else {
+            failCallback('GET request failed too many times for ' + settings.url + '.');
+          }
         }
     }); 
   } 

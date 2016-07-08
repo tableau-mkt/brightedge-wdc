@@ -43,23 +43,23 @@
     <h1 class="jumbotron-heading">Connect to BrightEdge WDC</h1>
       <form>
           <p>
-              <input class="form-control" type="text" name="username" id="username" placeholder="Username" />
+              <input class="form-control" type="text" name="username" id="username" placeholder="Username" required/>
               <label class="sr-only" for="username">Username</label>
           </p>              
           <p>
-              <input class="form-control" type="password" name="password" id="password" placeholder="Password or token" />
+              <input class="form-control" type="password" name="password" id="password" placeholder="Password or token" required/>
               <label class="sr-only" for="password">Password or token</label>
           </p>
           <p>
-              <input class="form-control" type="text" name="id" id="id" placeholder="Account ID" />
+              <input class="form-control" type="number" name="id" id="id" placeholder="Account ID #" required/>
               <label class="sr-only" for="id">Account ID</label>
           </p>
           <p>
-              <input class="form-control" type="number" name="startDate" id="startDate" min="20000000" max="29999999" placeholder="Start Date (YYYYMMDD format -- ex: 20160101)" />
+              <input class="form-control" type="number" name="startDate" id="startDate" min="20000000" max="29999999" placeholder="Start Date (YYYYMMDD format -- ex: 20160101)" required/>
               <label class="sr-only" max="29999999" for="startDate">Start Date (YYYYMMDD format -- ex: 20160101)</label>
           </p>
            <p>
-              <input class="form-control" type="number" name="endDate" id="endDate" min="20000000" max="29999999" placeholder="End Date (YYYYMMDD format -- ex: 20160625)" />
+              <input class="form-control" type="number" name="endDate" id="endDate" min="20000000" max="29999999" placeholder="End Date (YYYYMMDD format -- ex: 20160625)" required/>
               <label class="sr-only" min="20000000" max="29999999" for="endDate">End Date (YYYYMMDD format -- ex: 20160625)</label>
           </p>    
           <div>
@@ -68,6 +68,14 @@
       </form>
   </div>
 </section>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <h3>Verifying connection details...</h3>
+    </div>
+  </div>
+</div>
 
 <script src="build/all.min.js"></script>
 
