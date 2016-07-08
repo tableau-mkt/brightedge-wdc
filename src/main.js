@@ -45,7 +45,7 @@ module.exports = (function($, Q, tableau) {
     switch (phase) {
       case tableau.phaseEnum.interactivePhase:
         // Perform actual interactive phase stuff.
-
+        setUpInteractivePhase();
 
         break;
 
@@ -283,6 +283,38 @@ module.exports = (function($, Q, tableau) {
   };
 
   // You can write private methods for use above like this:
+
+  //Validation check to ensure WDC is not fired with invalid data
+  function setUpInteractivePhase() {
+    var $modal = $('div.modal'),
+        $form = $('form'),
+        recoverFromError = function recoverFromError() {
+          $modal.find('h3').text('Please fill out all fields before submitting.');
+          setTimeout(function () {
+            $modal.modal('hide');
+          }, 2000);
+        };
+
+
+    // Add a handler to detect missing field values
+    $form.submit(function (event) {
+      $modal.modal('show');
+      
+    if ($('#id').val().length === 0 || $('#username').val().length === 0 || $('#password').val().length === 0 ||
+     $('#startDate').val().length === 0 || $('#endDate').val().length === 0) {      
+        // Prevent the WDCW handler from firing.
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        recoverFromError();
+      }
+    });
+
+    // Reverse submit bindings on the $form element so our handler above is
+    // triggered before the main WDCW handler, allowing us to prevent it.
+    $._data($form[0], 'events').submit.reverse();
+  };
+
 
   /**
    * Helper function to build an API endpoint.
