@@ -2,7 +2,7 @@
 
 var express = require('express'),
     limit = require('simple-rate-limiter'),
-    request = limit(require('request')).to(1).per(1000),
+    request = limit(require('request')).to(1).per(3000),
     app = express(),
     bodyParser = require('body-parser'),
     retry = require('retry'),

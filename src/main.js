@@ -6,9 +6,9 @@ var module = module || {},
 
 module.exports = (function($, Q, tableau) {
   var retriesAttempted = 0,
-      maxRetries = 5,
+      maxRetries = 10,
       dateRetriesAttempted = 0,
-      maxDateRetries = 2,
+      maxDateRetries = 5,
       defaultItemsPerPage = 1000,
       config = {},
       wrapper,
@@ -64,13 +64,15 @@ module.exports = (function($, Q, tableau) {
 
             return new Promise(function(resolve, reject){
               //convert dates from YYYYMMDD to YYYYWW
-              getConvertedDates(startDate, endDate).then(function(dateObj){
-                dates = dateObj;
-                resolve(Promise.resolve());  
-              }); 
+              getConvertedDates(startDate, endDate)
+                .then(function(dateObj){
+                  dates = dateObj;
+                  resolve(Promise.resolve()); 
+                }); 
             }, function(err){
               console.error(err);
             });
+
           } else {
             return Promise.resolve();
           }
