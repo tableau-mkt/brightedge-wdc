@@ -1,5 +1,5 @@
 {
-  "name": "travis-ci-wdc",
+  "name": "brightedge-wdc",
   "version": "0.0.0",
   "dependencies": {
     "bootstrap": "~4.0.0",
@@ -9,6 +9,7 @@
     "uri.js": "~1.16.1",
     "q": "^1.4.1",
     "wdcw": "^2.0.0",
-    "tether": "^1.3.2"
+    "tether": "^1.3.2",
+    "moment": "^2.17.1"
   }
 }

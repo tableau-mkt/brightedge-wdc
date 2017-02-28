@@ -30,6 +30,7 @@ module.exports = function(grunt) {
           'bower_components/bootstrap/dist/js/bootstrap.js',
           //'src/wrapper.js',
           'bower_components/wdcw/dist/wdcw.min.js',
+          'bower_components/moment/moment.js',
           'src/**/*.js'
         ],
         dest: 'build/all.js'

@@ -2,9 +2,10 @@ var module = module || {},
     window = window || {},
     jQuery = jQuery || {},
     Q = Q || {},
-    tableau = tableau || {};
+    tableau = tableau || {},
+    moment = moment || {};
 
-module.exports = (function($, Q, tableau) {
+module.exports = (function($, Q, tableau, moment) {
   var retriesAttempted = 0,
       maxRetries = 10,
       dateRetriesAttempted = 0,
@@ -514,6 +515,30 @@ module.exports = (function($, Q, tableau) {
    *   A Date object, containing the startWeek, StartMonth, endWeek, and endMonth values   
    */
   function getConvertedDates(startDate, endDate){
+  //   return new Promise(function(resolve, reject){
+  //     var startYear = moment(startDate, 'YYYYMMDD').year().toString(),
+  //         endYear = moment(endDate, 'YYYYMMDD').year().toString(),
+  //         startWeek = startYear.concat(moment(startDate, 'YYYYMMDD').isoWeek()),
+  //         startMonth = startYear.concat(moment(startDate, 'YYYYMMDD').format('MM')),
+  //         endWeek = endYear.concat(moment(endDate, 'YYYYMMDD').isoWeek()),
+  //         endMonth = endYear.concat(moment(endDate, 'YYYYMMDD').format('MM'));
+
+
+  //     var datesObj = {
+  //       startYear: startYear,
+  //       endYear: endYear,
+  //       startWeek: startWeek,
+  //       startMonth: startMonth,
+  //       endWeek: endWeek,
+  //       endMonth: endMonth
+  //     }
+
+  //     console.log(JSON.stringify(datesObj));
+
+  //     resolve(datesObj);
+  //   });
+  // }
+
     var datesObj = {},
       startweek,
       startMonth,
@@ -627,4 +652,4 @@ module.exports = (function($, Q, tableau) {
   wrapper = wdcw(config);
 
   return config;
-})(jQuery, Q, tableau);
+})(jQuery, Q, tableau, moment);

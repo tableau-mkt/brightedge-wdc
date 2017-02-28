@@ -86,7 +86,7 @@ app.get('/proxy', function (req, res) {
   // endpoint we want to hit.
 
   var opts = {
-    retries: 2,
+    retries: 5,
     factor: 2,
     minTimeout: 1 * 1000,
     maxTimeout: 2 * 1000

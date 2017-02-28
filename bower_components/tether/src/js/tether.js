@@ -571,17 +571,17 @@ class TetherClass extends Evented {
         right: pageXOffset - left - width + innerWidth
       }
     };
-    
+
     var doc = this.target.ownerDocument;
     var win = doc.defaultView;
 
     let scrollbarSize;
-    if (doc.body.scrollWidth > win.innerWidth) {
+    if (win.innerHeight > doc.documentElement.clientHeight) {
       scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
       next.viewport.bottom -= scrollbarSize.height;
     }
 
-    if (doc.body.scrollHeight > win.innerHeight) {
+    if (win.innerWidth > doc.documentElement.clientWidth) {
       scrollbarSize = this.cache('scrollbar-size', getScrollBarSize);
       next.viewport.right -= scrollbarSize.width;
     }
@@ -697,7 +697,17 @@ class TetherClass extends Evented {
           xPos = -_pos.right;
         }
 
-        css[transformKey] = `translateX(${ Math.round(xPos) }px) translateY(${ Math.round(yPos) }px)`;
+        if (window.matchMedia) {
+          // HubSpot/tether#207
+          const retina = window.matchMedia('only screen and (min-resolution: 1.3dppx)').matches ||
+                         window.matchMedia('only screen and (-webkit-min-device-pixel-ratio: 1.3)').matches;
+          if (!retina) {
+            xPos = Math.round(xPos);
+            yPos = Math.round(yPos);
+          }
+        }
+
+        css[transformKey] = `translateX(${ xPos }px) translateY(${ yPos }px)`;
 
         if (transformKey !== 'msTransform') {
           // The Z transform will keep this in the GPU (faster, and prevents artifacts),
@@ -749,20 +759,24 @@ class TetherClass extends Evented {
     }
 
     if (!moved) {
-      let offsetParentIsBody = true;
-      let currentNode = this.element.parentNode;
-      while (currentNode && currentNode.nodeType === 1 && currentNode.tagName !== 'BODY') {
-        if (getComputedStyle(currentNode).position !== 'static') {
-          offsetParentIsBody = false;
-          break;
+      if (this.options.bodyElement) {
+        this.options.bodyElement.appendChild(this.element);
+      } else {
+        let offsetParentIsBody = true;
+        let currentNode = this.element.parentNode;
+        while (currentNode && currentNode.nodeType === 1 && currentNode.tagName !== 'BODY') {
+          if (getComputedStyle(currentNode).position !== 'static') {
+            offsetParentIsBody = false;
+            break;
+          }
+
+          currentNode = currentNode.parentNode;
         }
 
-        currentNode = currentNode.parentNode;
-      }
-
-      if (!offsetParentIsBody) {
-        this.element.parentNode.removeChild(this.element);
-        this.element.ownerDocument.body.appendChild(this.element);
+        if (!offsetParentIsBody) {
+          this.element.parentNode.removeChild(this.element);
+          this.element.ownerDocument.body.appendChild(this.element);
+        }
       }
     }
 
@@ -782,6 +796,7 @@ class TetherClass extends Evented {
     if (write) {
       defer(() => {
         extend(this.element.style, writeCSS);
+        this.trigger('repositioned');
       });
     }
   }
