@@ -1,3 +1,13 @@
+## DISCLAIMER: BrightEdge Web Data Connector is "as-is"
+This web data connector is not currently in development and will not be supported for maintenace or updates to either Tableau or BrightEdge.
+
+
+This Web Data Connector has __limited functionality and was created for a specific use-case__.
+
+
+If you would like to add to the project, we welcome pull requests!
+
+
 # BrightEdge-Web-Data-Connector
 A Tableau Web Data Connector for BrightEdge
 
